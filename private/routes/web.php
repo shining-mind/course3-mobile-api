@@ -16,3 +16,12 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+$router->group(['prefix' => 'users', 'namespace' => 'Users'], function () use ($router) {
+    $router->post('/', 'Controller@create');
+    $router->get('/search', 'Controller@search');
+});
+
+$router->group(['prefix' => 'teams', 'namespace' => 'Teams'], function () use ($router) {
+    $router->get('/', 'Controller@list');
+});
