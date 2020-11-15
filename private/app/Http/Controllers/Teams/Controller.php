@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Teams;
 
 use App\Http\Controllers\Controller as BaseController;
+use App\Http\Resources\Teams\TeamCollection;
 use App\Models\Team;
-use Illuminate\Http\Request;
 
 class Controller extends BaseController
 {
@@ -13,7 +15,6 @@ class Controller extends BaseController
      */
     public function list()
     {
-        // TODO: return data and meta
-        return Team::paginate(10);
+        return new TeamCollection(Team::with('owner')->paginate(10));
     }
 }

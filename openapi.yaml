@@ -1,0 +1,386 @@
+openapi: 3.0.3
+info:
+  title: Mobile-Course-Api
+  version: 0.0.1
+paths:
+  /:
+    get:
+      summary: Version of the api
+      responses:
+        200:
+          description: Version of the api
+          content:
+            application/json:
+              schema:
+                required:
+                  - version
+                properties:
+                  version:
+                    type: string
+                    example: 0.0.1
+  /users:
+    post:
+      summary: Register a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - username
+                - name
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 2
+                  maxLength: 32
+                name:
+                  type: string
+                  maxLength: 255
+                password:
+                  type: string
+                  pattern: '^(?=.*[a-z])(?=.*[\d]).*$'
+                  minLength: 8
+      responses:
+        201:
+          description: Data of the created user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        422:
+          $ref: '#/components/responses/UnprocessableEntityResponse'
+  /users/search:
+    get:
+      summary: Search for the user
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+      responses:
+        200:
+          description: List of matching users up to 10
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+                maxLength: 10
+  /auth/token:
+    post:
+      summary: Login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - required:
+                - grant_type
+                - username
+                - password
+                properties:
+                  username:
+                    type: string
+                  password:
+                    type: string
+                  grant_type:
+                    type: string
+                    example: password
+              - required:
+                - grant_type
+                - refresh_token
+                properties:
+                  refresh_token:
+                    type: string
+                  grant_type:
+                    type: string
+                    example: refresh_token
+      responses:
+        200:
+          description: Returns the access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken' 
+        401:
+          $ref: '#/components/responses/UnauthorizedResponse'
+    delete:
+      security:
+        - BearerAuth: []
+      summary: Logout
+      responses:
+        200:
+          $ref: '#/components/responses/InfoResponse'
+        401:
+          $ref: '#/components/responses/UnauthorizedResponse'
+  /auth/me:
+    get:
+      security:
+        - BearerAuth: []
+      summary: Data of the authorized user
+      responses:
+        200:
+          description: Data of the authorized user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          $ref: '#/components/responses/UnauthorizedResponse'
+  /teams:
+    get:
+      summary: List all the teams
+      responses:
+        200:
+          description: Paginated teams
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Team'
+                  - $ref: '#/components/schemas/Pagination'
+                    
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Pagination:
+      required: 
+        - meta
+        - links
+        - data
+      properties:
+        data:
+          type: array
+        links:
+          type: object
+          required:
+            - first
+            - last
+            - prev
+            - next
+          properties:
+            first: 
+              type: string
+              example: "http://localhost/teams?page=1"
+            last:
+              type: string
+              example: "http://localhost/teams?page=1"
+            prev:
+              type: string
+              example: null
+              nullable: true
+            next:
+              type: string
+              example: null
+              nullable: true
+        meta:
+          required:
+            - current_page
+            - from
+            - last_page
+            - links
+            - path
+            - per_page
+            - to
+            - total
+          properties:
+            current_page:
+              type: number
+            from:
+              type: number
+            last_page:
+              type: number
+            links:
+              type: array
+              minLength: 3
+              items:
+                properties:
+                  url:
+                    type: string
+                    format: url
+                  label:
+                    type: string
+                    example: Page 1
+                  active:
+                    type: boolean
+            path:
+              type: string
+              format: url
+              example: "http://localhost/teams"
+            per_page:
+              type: number
+            to:
+              type: number
+            total:
+              type: number
+    AccessToken:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ...
+        refresh_token:
+          type: string
+          example: 1facbe3a8c9123...
+        token_type:
+          type: string
+          example: bearer
+        expiresIn:
+          type: number
+          description: Token TTL in seconds
+          example: 86400
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        owner:
+          $ref: '#/components/schemas/User'
+    Info:
+      required: 
+        - message
+      properties:
+        message:
+          type: string
+          example: You have successfully done something.
+    Error:
+      required: 
+        - error
+      properties:
+        error:
+          required: 
+            - message
+          properties:
+            message:
+              type: string
+              example: Unexpected error has occured
+    BadRequestError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - properties:
+            error:
+              properties:
+                message:
+                  example: Bad Request
+    UnauthorizedError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - properties:
+            error:
+              properties:
+                message:
+                  example: Unauthorized | Bad credentials
+    ForbiddenError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - properties:
+            error:
+              properties:
+                message:
+                  example: Operation is forbidden
+    NotFoundError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - properties:
+            error:
+              properties:
+                message:
+                  example: Entity not found
+    UnprocessableEntityError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - properties:
+            error:
+              required:
+                - message
+              properties:
+                message:
+                  example: Unexpected input
+                details:
+                  type: object
+                  additionalProperties:
+                    type: string
+                  example:
+                    username: Username is already in use.
+                    password: Defined password is too weak.
+    FailedDependencyError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - properties:
+            error:
+              properties:
+                message:
+                  example: External API failed
+  responses:
+    BadRequestResponse:
+      description: Response for silly client application
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BadRequestError'
+    UnauthorizedResponse:
+      description: Response for unathorized user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+    ForbiddenResponse:
+      description: "In case of unallowed action"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+    NotFoundResponse:
+      description: "In case if something is not found"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+    UnprocessableEntityResponse:
+      description: Response for invalid data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnprocessableEntityError'
+    FailedDependencyResponse:
+      description: "Response for failed dependency, for example: external service failed"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FailedDependencyError'
+    InfoResponse:
+      description: Response with some information for the user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Info'
+

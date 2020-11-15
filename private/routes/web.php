@@ -14,12 +14,18 @@
 */
 
 $router->get('/', function () use ($router) {
-    return $router->app->version();
+    return response()->json(['version' => $router->app->version()]);
 });
 
 $router->group(['prefix' => 'users', 'namespace' => 'Users'], function () use ($router) {
     $router->post('/', 'Controller@create');
-    $router->get('/search', 'Controller@search');
+    $router->get('search', 'Controller@search');
+});
+
+$router->group(['namespace' => 'Auth', 'prefix' => 'auth'], function () use ($router) {
+    $router->post('token', 'Controller@login');
+    $router->delete('token', 'Controller@logout');
+    $router->get('me', 'Controller@me');
 });
 
 $router->group(['prefix' => 'teams', 'namespace' => 'Teams'], function () use ($router) {

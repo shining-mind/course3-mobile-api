@@ -18,7 +18,8 @@ class CreateUserTable extends Migration
             $table->id();
             $table->string('username', 32)->unique();
             $table->char('password', 60);
-            $table->string('name', 255)->nullable()->default(null);
+            $table->string('name', 255)->nullable();
+            $table->char('refresh_token', 64)->unique()->nullable();
             $table->timestamps();
         });
     }

@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Users;
 
 use App\Http\Controllers\Controller as BaseController;
+use App\Http\Resources\Users\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -20,7 +23,7 @@ class Controller extends BaseController
             'password' => 'required|string|regex:/^(?=.*\d)(?=.*[a-z]).{8,}$/i'
         ]);
         $user = User::create($data);
-        return response()->json($user, 201);
+        return response()->json(new UserResource($user), 201);
     }
 
     /**
@@ -33,9 +36,11 @@ class Controller extends BaseController
             'query' => 'required|string|min:3'
         ]);
         $search_query = $data['query'];
-        return User::query()->where('username', 'like', "$search_query%")
+        $collection = UserResource::collection(User::query()->where('username', 'like', "$search_query%")
             ->orWhere('name', 'like', "$search_query%")
             ->limit(10)
-            ->get();
+            ->get());
+        $collection->withoutWrapping();
+        return $collection;
     }
 }
