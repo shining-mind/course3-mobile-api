@@ -2,12 +2,15 @@ openapi: 3.0.3
 info:
   title: Mobile-Course-Api
   version: 0.0.1
+servers:
+  - url: 'https://shining-mind.ru/course3/mobile/api/'
+    variables: {}
 paths:
   /:
     get:
       summary: Version of the api
       responses:
-        200:
+        '200':
           description: Version of the api
           content:
             application/json:
@@ -42,13 +45,13 @@ paths:
                   pattern: '^(?=.*[a-z])(?=.*[\d]).*$'
                   minLength: 8
       responses:
-        201:
+        '201':
           description: Data of the created user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        422:
+        '422':
           $ref: '#/components/responses/UnprocessableEntityResponse'
   /users/search:
     get:
@@ -61,7 +64,7 @@ paths:
             type: string
             minLength: 3
       responses:
-        200:
+        '200':
           description: List of matching users up to 10
           content:
             application/json:
@@ -78,44 +81,44 @@ paths:
           application/json:
             schema:
               oneOf:
-              - required:
-                - grant_type
-                - username
-                - password
-                properties:
-                  username:
-                    type: string
-                  password:
-                    type: string
-                  grant_type:
-                    type: string
-                    example: password
-              - required:
-                - grant_type
-                - refresh_token
-                properties:
-                  refresh_token:
-                    type: string
-                  grant_type:
-                    type: string
-                    example: refresh_token
+                - required:
+                    - grant_type
+                    - username
+                    - password
+                  properties:
+                    username:
+                      type: string
+                    password:
+                      type: string
+                    grant_type:
+                      type: string
+                      example: password
+                - required:
+                    - grant_type
+                    - refresh_token
+                  properties:
+                    refresh_token:
+                      type: string
+                    grant_type:
+                      type: string
+                      example: refresh_token
       responses:
-        200:
+        '200':
           description: Returns the access token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccessToken' 
-        401:
+                $ref: '#/components/schemas/AccessToken'
+        '401':
           $ref: '#/components/responses/UnauthorizedResponse'
     delete:
       security:
         - BearerAuth: []
       summary: Logout
       responses:
-        200:
+        '200':
           $ref: '#/components/responses/InfoResponse'
-        401:
+        '401':
           $ref: '#/components/responses/UnauthorizedResponse'
   /auth/me:
     get:
@@ -123,19 +126,19 @@ paths:
         - BearerAuth: []
       summary: Data of the authorized user
       responses:
-        200:
+        '200':
           description: Data of the authorized user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-        401:
+        '401':
           $ref: '#/components/responses/UnauthorizedResponse'
   /teams:
     get:
       summary: List all the teams
       responses:
-        200:
+        '200':
           description: Paginated teams
           content:
             application/json:
@@ -147,7 +150,6 @@ paths:
                         items:
                           $ref: '#/components/schemas/Team'
                   - $ref: '#/components/schemas/Pagination'
-                    
 components:
   securitySchemes:
     BearerAuth:
@@ -155,7 +157,7 @@ components:
       scheme: bearer
   schemas:
     Pagination:
-      required: 
+      required:
         - meta
         - links
         - data
@@ -170,12 +172,12 @@ components:
             - prev
             - next
           properties:
-            first: 
+            first:
               type: string
-              example: "http://localhost/teams?page=1"
+              example: 'http://localhost/teams?page=1'
             last:
               type: string
-              example: "http://localhost/teams?page=1"
+              example: 'http://localhost/teams?page=1'
             prev:
               type: string
               example: null
@@ -217,7 +219,7 @@ components:
             path:
               type: string
               format: url
-              example: "http://localhost/teams"
+              example: 'http://localhost/teams'
             per_page:
               type: number
             to:
@@ -266,18 +268,18 @@ components:
         owner:
           $ref: '#/components/schemas/User'
     Info:
-      required: 
+      required:
         - message
       properties:
         message:
           type: string
           example: You have successfully done something.
     Error:
-      required: 
+      required:
         - error
       properties:
         error:
-          required: 
+          required:
             - message
           properties:
             message:
@@ -354,13 +356,13 @@ components:
           schema:
             $ref: '#/components/schemas/UnauthorizedError'
     ForbiddenResponse:
-      description: "In case of unallowed action"
+      description: In case of unallowed action
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ForbiddenError'
     NotFoundResponse:
-      description: "In case if something is not found"
+      description: In case if something is not found
       content:
         application/json:
           schema:
@@ -372,7 +374,7 @@ components:
           schema:
             $ref: '#/components/schemas/UnprocessableEntityError'
     FailedDependencyResponse:
-      description: "Response for failed dependency, for example: external service failed"
+      description: 'Response for failed dependency, for example: external service failed'
       content:
         application/json:
           schema:
@@ -383,4 +385,3 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Info'
-
