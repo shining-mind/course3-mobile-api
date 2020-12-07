@@ -57,7 +57,6 @@ class Controller extends BaseController
      */
     protected function loginUsingCredentials(array $credentials): ?string
     {
-        $credentials = request($credentials);
         $token = $this->auth->attempt($credentials);
         if (!is_string($token)) {
             return null;
